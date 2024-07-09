@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { ProjectionGenerator } from '../generator/ProjectionGenerator.js';
+import { ProjectionGenerator } from '../ProjectionGenerator.js';
 
 onmessage = function ( { data } ) {
 

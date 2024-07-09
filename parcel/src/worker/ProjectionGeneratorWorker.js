@@ -1,13 +1,12 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { OUTPUT_BOTH } from '../generator/SilhouetteGenerator';
 
-const NAME = 'SilhouetteGeneratorWorker';
-export class SilhouetteGeneratorWorker {
+const NAME = 'ProjectionGeneratorWorker';
+export class ProjectionGeneratorWorker {
 
 	constructor() {
 
 		this.running = false;
-		this.worker = new Worker( new URL( './silhouetteAsync.worker.js', import.meta.url ), { type: 'module' } );
+		this.worker = new Worker( new URL( './projectionAsync.worker.js', import.meta.url ), { type: 'module' } );
 		this.worker.onerror = e => {
 
 			if ( e.message ) {
@@ -62,33 +61,9 @@ export class SilhouetteGeneratorWorker {
 
 				} else if ( data.result ) {
 
-					if ( options.output === OUTPUT_BOTH ) {
-
-						const result = data.result.map( info => {
-
-							const geometry = new BufferGeometry();
-							geometry.setAttribute( 'position', new BufferAttribute( info.position, 3, false ) );
-							if ( info.index ) {
-
-								geometry.setIndex( new BufferAttribute( info.index, 1, false ) );
-
-							}
-
-							return geometry;
-
-						} );
-
-						resolve( result );
-
-					} else {
-
-						const geometry = new BufferGeometry();
-						geometry.setAttribute( 'position', new BufferAttribute( data.result.position, 3, false ) );
-						geometry.setIndex( new BufferAttribute( data.result.index, 1, false ) );
-						resolve( geometry );
-
-					}
-
+					const geometry = new BufferGeometry();
+					geometry.setAttribute( 'position', new BufferAttribute( data.result, 3, false ) );
+					resolve( geometry );
 					worker.onmessage = null;
 
 				} else if ( options.onProgress ) {

@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { OUTPUT_BOTH } from '../generator/SilhouetteGenerator';
+import { OUTPUT_BOTH } from '../SilhouetteGenerator';
 
 const NAME = 'SilhouetteGeneratorWorker';
 export class SilhouetteGeneratorWorker {

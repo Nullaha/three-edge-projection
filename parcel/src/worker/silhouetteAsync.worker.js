@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { OUTPUT_BOTH, SilhouetteGenerator } from '../generator/SilhouetteGenerator.js';
+import { OUTPUT_BOTH, SilhouetteGenerator } from '../SilhouetteGenerator.js';
 
 onmessage = function ( { data } ) {
 
