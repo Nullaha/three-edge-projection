@@ -20,6 +20,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { OUTPUT_BOTH, SilhouetteGenerator } from './generator/index.js';
 import { SilhouetteGeneratorWorker } from '../src/worker/SilhouetteGeneratorWorker.js';
 
+const sizes = {
+	width: 800,
+	height: 600,
+}
 const params = {
 	displaySilhouette: true,
 	displayWireframe: false,
@@ -27,12 +31,13 @@ const params = {
 	displayModel: true,
 	useWorker: false,
 	rotate: () => {
+		debugger
 
-		group.quaternion.random();
+		group.quaternion.random(); // 随机旋转
 		group.position.set( 0, 0, 0 );
 		group.updateMatrixWorld( true );
 
-		const box = new Box3();
+		const box = new Box3(); // AABB
 		box.setFromObject( model, true );
 		box.getCenter( group.position ).multiplyScalar( - 1 );
 		group.position.y = Math.max( 0, - box.min.y ) + 1;
@@ -54,15 +59,16 @@ let task = null;
 init();
 
 async function init() {
+	debugger
 
-	outputContainer = document.getElementById( 'output' );
+	outputContainer = document.querySelector( '#output' );
 
 	const bgColor = 0xeeeeee;
 
 	// renderer setup
 	renderer = new WebGLRenderer( { antialias: true } );
-	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setClearColor( bgColor, 1 );
 	document.body.appendChild( renderer.domElement );
 
@@ -70,9 +76,9 @@ async function init() {
 	scene = new Scene();
 
 	// lights
-	const light = new DirectionalLight( 0xffffff, 3.5 );
-	light.position.set( 1, 2, 3 );
-	scene.add( light );
+	// const light = new DirectionalLight( 0xffffff, 3.5 );
+	// light.position.set( 1, 2, 3 );
+	// scene.add( light );
 
 	const ambientLight = new AmbientLight( 0xb0bec5, 0.5 );
 	scene.add( ambientLight );
@@ -87,21 +93,21 @@ async function init() {
 		polygonOffsetFactor: 1,
 		polygonOffsetUnits: 1,
 	} ) );
-	model.rotation.set( Math.PI / 4, 0, Math.PI / 8 );
+	// model.rotation.set( Math.PI / 4, 0, Math.PI / 8 );
 	group.add( model );
 
 	// create projection display mesh
 	projection = new Mesh( undefined, new MeshBasicMaterial( {
 		color: 0xf06292,
 		side: DoubleSide,
-		polygonOffset: true,
-		polygonOffsetFactor: 1,
-		polygonOffsetUnits: 1,
+		polygonOffset: true, // 启用多边形偏移，可以防止 Z-fighting
+		polygonOffsetFactor: 1, //控制多边形偏移的程度。
+		polygonOffsetUnits: 1,  //控制多边形偏移的程度。
 	} ) );
 	projection.position.y = - 2;
 	scene.add( projection );
 
-	edges = new LineSegments( undefined, new LineBasicMaterial( { color: 0 } ) );
+	edges = new LineSegments( undefined, new LineBasicMaterial( { color: 0 } ) ); //线段    color: 0 实际上是一个十六进制颜色值的简写形式，它等同于 color: 0x000000，表示黑色。
 	edges.position.y = - 2;
 	scene.add( edges );
 
@@ -148,17 +154,17 @@ function* updateEdges( runTime = 30 ) {
 	outputContainer.innerText = 'processing: --';
 
 	// transform and merge geometries to project into a single model
-	let timeStart = window.performance.now();
+	let timeStart = window.performance.now(); //返回一个表示自某个固定时间点（通常是页面加载或某个显著的起始时间）以来的毫秒数。
 	const geometries = [];
-	model.updateWorldMatrix( true, true );
+	model.updateWorldMatrix( true, true );  // object.updateWorldMatrix(updateParents, updateChildren);
 	model.traverse( c => {
 
 		if ( c.geometry ) {
 
-			const clone = c.geometry.clone();
-			clone.applyMatrix4( c.matrixWorld );
-			for ( const key in clone.attributes ) {
-
+			const clone = c.geometry.clone(); // geometry
+			clone.applyMatrix4( c.matrixWorld ); // 将geometry的顶点从局部坐标转为世界坐标。
+			for ( const key in clone.attributes ) { 
+				// 删除所有非位置属性
 				if ( key !== 'position' ) {
 
 					clone.deleteAttribute( key );
@@ -170,7 +176,6 @@ function* updateEdges( runTime = 30 ) {
 			geometries.push( clone );
 
 		}
-
 	} );
 	const mergedGeometry = mergeGeometries( geometries, false );
 	const mergeTime = window.performance.now() - timeStart;
