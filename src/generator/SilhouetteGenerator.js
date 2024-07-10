@@ -20,20 +20,21 @@ const _vec = /* @__PURE__ */ new Vector3();
  */
 function convertPathToGeometry( path, scale ) {
 
-	// 遍历每个路径，将每个点的坐标转换为 Vector2 对象
+	// 1. 遍历路径中的每个点的坐标转换为 Vector2 对象
 	const vector2s = path.map( points => {
 		
 		return points.flatMap( v => new Vector2( v.x / scale, v.y / scale ) );
 
 	} );
 
-	
+	// 2. 处理孔洞 （孔洞要顺时针）
 	const holesShapes = vector2s
-		.filter( p => ShapeUtils.isClockWise( p ) )
+		.filter( p => ShapeUtils.isClockWise( p ) ) // 顺时针
 		.map( p => new Shape( p ) );
 
+	// 3. 处理实心形状 + 孔洞 （实心形状要逆时针）
 	const solidShapes = vector2s
-		.filter( p => ! ShapeUtils.isClockWise( p ) )
+		.filter( p => ! ShapeUtils.isClockWise( p ) ) // 逆时针
 		.map( p => {
 
 			const shape = new Shape( p );
@@ -42,15 +43,16 @@ function convertPathToGeometry( path, scale ) {
 
 		} );
 
-	// flip the triangles so they're facing in the right direction
+	// 4. flip the triangles so they're facing in the right direction
 	const result = new ShapeGeometry( solidShapes ).rotateX( Math.PI / 2 );
-	result.index.array.reverse();
+	result.index.array.reverse(); // rotateX导致的 顶点顺序反转
 	return result;
 
 }
 
 function convertPathToLineSegments( path, scale ) {
-
+	// [p0 p1 p2 p3 p4] -> [p0 p1 p1 p2 p2 p3 p3 p4 p4 p0]
+	// 为什么要这样？ 为了生成线段？？？确保了路径上每两个相连的点之间都有一个线段？
 	const arr = [];
 	path.forEach( points => {
 
@@ -125,6 +127,7 @@ export class SilhouetteGenerator {
 	}
 
 	*generate( geometry, options = {} ) {
+		debugger
 
 		const { iterationTime, intScalar, doubleSided, output, sortTriangles } = this;
 		const { onProgress } = options;

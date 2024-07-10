@@ -2,13 +2,14 @@ import { BufferAttribute, BufferGeometry } from 'three';
 import { OUTPUT_BOTH, SilhouetteGenerator } from '../generator/SilhouetteGenerator.js';
 
 onmessage = function ( { data } ) {
-
+	debugger
+	console.log('worker要监听到主线程的消息-----------------------------');
 	let prevTime = performance.now();
 	function onProgressCallback( progress ) {
 
 		const currTime = performance.now();
 		if ( currTime - prevTime >= 10 || progress === 1.0 ) {
-
+			console.log('worker要发送给主线程的消息----------------------------1');
 			postMessage( {
 
 				error: null,
@@ -76,7 +77,7 @@ onmessage = function ( { data } ) {
 			buffers = [ posArr.buffer, indexArr.buffer ];
 
 		}
-
+		console.log('worker要发送给主线程的消息----------------------------2');
 		postMessage( {
 
 			result: output,
@@ -86,7 +87,7 @@ onmessage = function ( { data } ) {
 		}, buffers.filter( b => ! ! b ) );
 
 	} catch ( error ) {
-
+		console.log('worker要发送给主线程的消息----------------------------3');
 		postMessage( {
 
 			error,

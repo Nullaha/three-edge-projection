@@ -131,10 +131,12 @@ async function init() {
 	gui.add( params, 'useWorker' );
 	gui.add( params, 'rotate' );
 	gui.add( params, 'regenerate' );
-
+	console.log(1);
 	worker = new SilhouetteGeneratorWorker();
-
-	task = updateEdges();
+	console.log(2);
+	
+	task = updateEdges(); // 这里不会立即执行，它得.next()才会执行
+	console.log(3);
 
 	render();
 
@@ -149,7 +151,12 @@ async function init() {
 
 }
 
+
+/**
+ * 这个函数控制了*SilhouetteGenerator.generate() 的执行。
+ */
 function* updateEdges( runTime = 30 ) {
+	console.log(4);
 
 	outputContainer.innerText = 'processing: --';
 
@@ -198,8 +205,8 @@ function* updateEdges( runTime = 30 ) {
 				outputContainer.innerText = `processing: ${ parseFloat( ( p * 100 ).toFixed( 2 ) ) }%`;
 
 				const result = info.getGeometry();
-				projection.geometry.dispose();
-				projection.geometry = result[ 0 ];
+				projection.geometry.dispose(); // 销毁旧的
+				projection.geometry = result[ 0 ];//拿新的
 				projectionWireframe.geometry = result[ 0 ];
 
 				edges.geometry.dispose();
@@ -224,14 +231,14 @@ function* updateEdges( runTime = 30 ) {
 		while ( ! res.done ) {
 
 			res = task.next();
-			yield;
+			yield; // ⭐⭐ 也就是 里面的每一次.next(),外面的也会yield
 
 		}
 
 		result = res.value;
 
 	} else {
-
+		debugger
 		worker
 			.generate( mergedGeometry, {
 				output: OUTPUT_BOTH,
@@ -274,6 +281,7 @@ function render() {
 
 	requestAnimationFrame( render );
 
+	// 这里控制着*updateEdges()的执行。  
 	if ( task ) {
 
 		const res = task.next();

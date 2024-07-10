@@ -1,9 +1,80 @@
+## 思路  
 
-它的思路是： 
+### 它的算法思路是： 
 
 flatten the triangle  
 
 xyz三维的triangle变成xz平面上的riangle。  
+
+
+### 它的代码思路：（迭代器版）  
+
+let task = updateEdges()
+每一帧都会调用task.next(),直到返回值的done为true。  
+
+task里面： 
+计算mergedGeometry  
+new SilhouetteGenerator()  
+控制 task2, 通过task2.next()一直循环。
+
+task2里面：
+拿geometry的索引和位置属性,得一共有多少个triangle。   
+遍历，拿到每个triangle的三个顶点。  
+3维变2维  
+计算重心，扩张一下三个顶点，保证三角形都是叠在一起的  
+由顶点生成 path  
+合并paths  
+判断是否超时，触发回调函数，返回进度  
+paths -> geometry  
+
+
+### 它的代码思路：（worker版） 
+
+主线程监听onMessage接收worker传来的消息：
+
+```js
+
+if(error){
+  // error
+}
+else if (result){
+
+  // result:
+}
+else if (progress){
+  
+  // progress:
+}
+
+```
+
+主线程调用postMesonPsage给worker发送消息：
+
+```js
+worker.postMesonPsage( {
+  index,
+  position,
+  options: {
+    ...options,
+    onProgress: null,
+    includedProgressCallback: Boolean( options.onProgress ),
+  },
+}, transfer );
+```
+
+worker监听onMessage接收主线程传来的消息：
+
+
+
+worker调用postMessage给主线程发送消息：
+
+
+
+
+
+
+
+
 
  
 
@@ -126,12 +197,66 @@ vector2s 数组中的路径根据其方向（顺时针或逆时针）分成轮�
 import { ShapeGeometry, Shape, Vector2 } from 'three';
 
 // 逆时针的是孔洞
-const hole = new Shape()
-const shape = new Shape()
-shape.holes = [hole]
+const holes = [new Shape()] // 顺时针
+const shape = new Shape() // 逆时针
+shape.holes = holes
 const shapes = [shape]
 
 const geom = new ShapeGeometry(shapes)
 ```
 
 
+9. 	const result = new ShapeGeometry( solidShapes ).rotateX( Math.PI / 2 );
+	result.index.array.reverse();  ??  
+
+rotateX我能理解，要面向屏幕嘛。   
+
+reverse() 我不理解，为什么要把索引数组反转？？？  
+
+> transform your points into the XY plane first before generating your shapes.  
+
+[2D object in 3D space (by vertices)](https://discourse.threejs.org/t/2d-object-in-3d-space-by-vertices/2795/34?page=2)  
+
+
+大概是因为绕x轴旋转后，正面朝下了，也就是法线指向👇。所以要reverse索引。（可以用右手定则看一下） 
+
+1 一开始逆时针旋转，面向屏幕，右手定则，大拇指指向屏幕外。
+
+2 rotateX(90°) ，右手定则知，正面 面向-y轴了。也就是法线👇。   
+
+3 所以reverse index嘛。让法线👆。
+
+
+10. rotateX(角度)，角度的正值还是负值，是怎么转的?  
+
+右手定则。大拇指指向x轴正轴时，手指方向就是正方向咯。  
+
+
+11. *updateEdges()的作用？  
+
+这个函数用于控制 *SilhouetteGenerator.generate() 的执行。  
+
+requestAnimationFrame() 又控制着*updateEdges的执行。  
+
+
+12. worker 的创建、使用？  
+
+创建：  
+
+const worker = new Worker(scriptURL, options);
+const worker = new Worker('./worker.js', { type: 'module' });
+
+
+
+worker.js脚本的编写：  
+
+监听onmessage来接收主线程的消息。  
+通过postMessage发送消息给主线程。
+
+主线程与worker.js通信：  
+const worker = new Worker('./worker.js');
+worker.postMessage('Hello from main thread!');
+
+worker.onmessage = function(e) {
+    console.log('Message received from worker:', e.data);
+};

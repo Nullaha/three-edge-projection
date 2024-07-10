@@ -25,7 +25,7 @@ export class SilhouetteGeneratorWorker {
 	}
 
 	generate( geometry, options = {} ) {
-
+		debugger
 		if ( this.running ) {
 
 			throw new Error( `${ NAME }: Already running job.` );
@@ -51,6 +51,7 @@ export class SilhouetteGeneratorWorker {
 			};
 
 			worker.onmessage = e => {
+				console.log('主线程接收worker的消息------------------');
 
 				this.running = false;
 				const { data } = e;
@@ -108,6 +109,7 @@ export class SilhouetteGeneratorWorker {
 
 			}
 
+			console.log('主线程要发送消息给worker------------------');
 			worker.postMessage( {
 				index,
 				position,
