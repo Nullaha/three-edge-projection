@@ -30,28 +30,31 @@ paths -> geometry
 
 ### 它的代码思路：（worker版） 
 
-主线程监听onMessage接收worker传来的消息：
+1. 主线程监听onMessage接收worker传来的消息：
 
 ```js
+worker.onmessage = e => {
 
-if(error){
-  // error
-}
-else if (result){
-
-  // result:
-}
-else if (progress){
+  if(error){
+    // error
+  }
+  else if (result){
   
-  // progress:
+    // result:
+
+  }
+  else if (progress){
+    
+    // progress:
+  }
 }
 
 ```
 
-主线程调用postMesonPsage给worker发送消息：
+2. 主线程调用postMesonPsage给worker发送消息：
 
 ```js
-worker.postMesonPsage( {
+worker.postMessage( {
   index,
   position,
   options: {
@@ -62,11 +65,29 @@ worker.postMesonPsage( {
 }, transfer );
 ```
 
-worker监听onMessage接收主线程传来的消息：
+3. worker监听onMessage接收主线程传来的消息：
+```js
+onmessage = function ({data}){
+
+  // (和不使用worker步骤差不多)
+
+  // 1.用index和position创建了原来的geometry在worker中使用
+
+  // 2.调用new SilhouetteGenerator()创建generator  
+
+  // 拿到 generator的结果result: geometry
+
+  // 组装indexArr 和posArr
+
+  // 给主线发送消息 （也用了transfer）
+
+}
+```
+
+//这里主线为什么不直接传geometry过来，而是传了index和position然后在worker里创建了个geometry来用？ 
 
 
-
-worker调用postMessage给主线程发送消息：
+4. worker调用postMessage给主线程发送消息：
 
 
 
@@ -260,3 +281,37 @@ worker.postMessage('Hello from main thread!');
 worker.onmessage = function(e) {
     console.log('Message received from worker:', e.data);
 };
+
+12. worker.postMessage(data,transfer)的参数怎么写?  
+
+1 消息数据（必填）
+2 可转移对象的列表（可选）：是个数组  
+
+transfer有啥用？  
+
+> gpt
+>> 通过传递 ArrayBuffer 的所有权而不是深拷贝数据，postMessage 在主线程和 Worker 之间实现了高效的数据传输。这个机制尤其适用于处理大量数据的场景，比如三维几何体的顶点和索引数据传输。
+
+如果是数据量巨大的普通数组怎么传transfer呢？ 
+
+将普通数组转换为 TypedArray咯。  
+
+```js
+const arr = [1,2,3]
+const typedArr = new Float32Array(arr)
+const buffer = typedArr.buffer
+```
+
+
+
+13. BufferAttribute里的buffer和array的区别 ？  
+
+const position = geometry.attributes.position.array;
+const buffer = geometry.attributes.position.buffer;
+
+只是顶点数据的不同表现形式。  
+
+position.array 是一个类型化数组（通常是 Float32Array）  
+position.buffer 是一个 ArrayBuffer 对象，表示类型化数组的**底层内存缓冲区**。  
+
+（可以在需要高效传输数据的场景中使用）  

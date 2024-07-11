@@ -5,7 +5,7 @@ const NAME = 'SilhouetteGeneratorWorker';
 export class SilhouetteGeneratorWorker {
 
 	constructor() {
-
+		debugger
 		this.running = false;
 		this.worker = new Worker( new URL( './silhouetteAsync.worker.js', import.meta.url ), { type: 'module' } );
 		this.worker.onerror = e => {
@@ -51,6 +51,7 @@ export class SilhouetteGeneratorWorker {
 			};
 
 			worker.onmessage = e => {
+				debugger
 				console.log('主线程接收worker的消息------------------');
 
 				this.running = false;
@@ -99,14 +100,14 @@ export class SilhouetteGeneratorWorker {
 				}
 
 			};
-
+			debugger
+			// 拿Uint16Array和Float32Array，估计是后面给属性用的。
+			// 拿buffer可能是为了高效传输数据用。
 			const index = geometry.index ? geometry.index.array.slice() : null;
-			const position = geometry.attributes.position.array.slice();
+			const position = geometry.attributes.position.array.slice(); 
 			const transfer = [ position.buffer ];
 			if ( index ) {
-
 				transfer.push( index.buffer );
-
 			}
 
 			console.log('主线程要发送消息给worker------------------');

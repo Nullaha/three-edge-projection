@@ -9,7 +9,7 @@ onmessage = function ( { data } ) {
 
 		const currTime = performance.now();
 		if ( currTime - prevTime >= 10 || progress === 1.0 ) {
-			console.log('worker要发送给主线程的消息----------------------------1');
+			console.log('worker要发送给主线程的消息----------------------------1进度');
 			postMessage( {
 
 				error: null,
@@ -23,12 +23,14 @@ onmessage = function ( { data } ) {
 	}
 
 	try {
-
+		debugger
+		// 创建原来的geometry在workder里使用 
 		const { index, position, options } = data;
 		const geometry = new BufferGeometry();
 		geometry.setIndex( new BufferAttribute( index, 1, false ) );
 		geometry.setAttribute( 'position', new BufferAttribute( position, 3, false ) );
 
+		// generator
 		const generator = new SilhouetteGenerator();
 		generator.doubleSided = options.doubleSided ?? generator.doubleSided;
 		generator.output = options.output ?? generator.output;
@@ -77,7 +79,7 @@ onmessage = function ( { data } ) {
 			buffers = [ posArr.buffer, indexArr.buffer ];
 
 		}
-		console.log('worker要发送给主线程的消息----------------------------2');
+		console.log('worker要发送给主线程的消息----------------------------2最终结果');
 		postMessage( {
 
 			result: output,
@@ -87,7 +89,7 @@ onmessage = function ( { data } ) {
 		}, buffers.filter( b => ! ! b ) );
 
 	} catch ( error ) {
-		console.log('worker要发送给主线程的消息----------------------------3');
+		console.log('worker要发送给主线程的消息----------------------------3报错');
 		postMessage( {
 
 			error,
