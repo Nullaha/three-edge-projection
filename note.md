@@ -9,23 +9,37 @@ xyz三维的triangle变成xz平面上的riangle。
 
 ### 它的代码思路：（迭代器版）  
 
+创建：
+model = new Mesh()  
+model.position.y = 2
+projection = new Mesh(undefined,new MeshBasicMaterial())  
+projection.position.y = -2
+edges= new LineSegments()
+projectionWireframe = new Mesh( undefined, new MeshBasicMaterial( { color: 0xc2185b, wireframe: true } ) );  
+projectionWireframe.position.y = - 2;  
+
+
 let task = updateEdges()
 每一帧都会调用task.next(),直到返回值的done为true。  
 
 task里面： 
-计算mergedGeometry  
-new SilhouetteGenerator()  
-控制 task2, 通过task2.next()一直循环。
+  拿model的geometries  
+  计算mergedGeometry  
+  yield
 
-task2里面：
-拿geometry的索引和位置属性,得一共有多少个triangle。   
-遍历，拿到每个triangle的三个顶点。  
-3维变2维  
-计算重心，扩张一下三个顶点，保证三角形都是叠在一起的  
-由顶点生成 path  
-合并paths  
-判断是否超时，触发回调函数，返回进度  
-paths -> geometry  
+  generator = new SilhouetteGenerator()  
+  const task = generator.generate(mergedGeometry,{})  
+  控制 task2, 通过while一直循环task2.next()。
+
+  task2里面：
+    拿geometry的索引和位置属性,得一共有多少个triangle。   
+    遍历，拿到每个triangle的三个顶点。  
+    3维变2维  
+    计算重心，扩张一下三个顶点，保证三角形都是叠在一起的  
+    由顶点生成 path  
+    合并paths  
+    判断是否超时，触发回调函数，返回进度  
+    paths -> geometry  
 
 
 ### 它的代码思路：（worker版） 
@@ -99,7 +113,7 @@ onmessage = function ({data}){
 
  
 
-
+### 问题?    
 
 1. const clone = mesh.geomery.clone() ?  
 

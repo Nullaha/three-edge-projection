@@ -163,13 +163,15 @@ function* updateEdges( runTime = 30 ) {
 	// transform and merge geometries to project into a single model
 	let timeStart = window.performance.now(); //返回一个表示自某个固定时间点（通常是页面加载或某个显著的起始时间）以来的毫秒数。
 	const geometries = [];
-	model.updateWorldMatrix( true, true );  // object.updateWorldMatrix(updateParents, updateChildren);
-	model.traverse( c => {
+	// 更新model及其所有子对象的世界矩阵
+	// object.updateWorldMatrix(updateParents, updateChildren);
+	model.updateWorldMatrix( true, true );  
+	model.traverse( c => { // 遍历
 
-		if ( c.geometry ) {
+		if ( c.geometry ) {// 处理具有geometry的子对象
 
 			const clone = c.geometry.clone(); // geometry
-			clone.applyMatrix4( c.matrixWorld ); // 将geometry的顶点从局部坐标转为世界坐标。
+			clone.applyMatrix4( c.matrixWorld ); // 将geometry的顶点从局部坐标转为世界坐标。// applyMatrix4(matrix)：applyMatrix4方法会使用给定的矩阵matrix转换几何体的所有顶点。
 			for ( const key in clone.attributes ) { 
 				// 删除所有非位置属性
 				if ( key !== 'position' ) {
@@ -187,7 +189,7 @@ function* updateEdges( runTime = 30 ) {
 	const mergedGeometry = mergeGeometries( geometries, false );
 	const mergeTime = window.performance.now() - timeStart;
 
-	yield;
+	yield; //这里就会🛑，等待下一次的next()调用
 
 	// generate the candidate edges
 	timeStart = window.performance.now();
